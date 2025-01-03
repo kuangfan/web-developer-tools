@@ -33,7 +33,21 @@
           </div>
         </div>
       </n-tab-pane>
-      <n-tab-pane name="chap2" tab="二维码解码"></n-tab-pane>
+      <n-tab-pane name="chap2" tab="二维码解码">
+        <div class="upload-area">
+          <n-upload
+            ref="uploadQRCode"
+            accept="image/*"
+            :max="1"
+            :on-change="handleFileChange"
+          >
+            <n-button>上传二维码图片</n-button>
+          </n-upload>
+        </div>
+        <div v-if="decodedText" class="decoded-text">
+          解析结果：{{ decodedText }}
+        </div>
+      </n-tab-pane>
     </n-tabs>
   </div>
 </template>
@@ -46,7 +60,9 @@ import {
   NButton,
   NQrCode,
   NColorPicker,
+  NUpload,
 } from 'naive-ui'
+import jsQR from 'jsqr'
 
 const inputText = ref('')
 const url = ref('')
@@ -58,6 +74,7 @@ const handleGenerate = () => {
 
 const init = () => {
   console.log('qrcode init')
+  if (!chrome || !chrome.tabs) return
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const activeTab = tabs[0]
     if (activeTab && activeTab.url) {
@@ -81,6 +98,33 @@ const handleDownloadQRCode = () => {
     a.click()
     document.body.removeChild(a)
   }
+}
+
+const uploadQRCode = ref(null)
+const decodedText = ref('')
+const handleFileChange = (options) => {
+  const { file } = options.file
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx.drawImage(img, 0, 0)
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const code = jsQR(imageData.data, imageData.width, imageData.height)
+      if (code) {
+        decodedText.value = code.data
+      } else {
+        decodedText.value = '解析二维码失败'
+      }
+      uploadQRCode.value.clear()
+    }
+    img.src = e.target.result
+  }
+  reader.readAsDataURL(file)
 }
 
 onMounted(() => {
@@ -114,6 +158,9 @@ onUnmounted(() => {
         white-space: nowrap;
       }
     }
+  }
+  .upload-area {
+    margin-top: 10px;
   }
 }
 </style>
