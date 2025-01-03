@@ -1,0 +1,114 @@
+<template>
+  <div class="qrcode">
+    <n-tabs type="segment" animated>
+      <n-tab-pane name="chap1" tab="二维码生成">
+        <div class="search-bar">
+          <n-input
+            :style="{ width: '76%' }"
+            size="small"
+            v-model:value="inputText"
+            placeholder="请输入内容"
+          />
+          <n-button size="small" type="primary" ghost @click="handleGenerate">
+            生成
+          </n-button>
+        </div>
+        <div v-if="url" class="qrcode-img">
+          <n-qr-code id="qr-code" :value="url" :color="color" />
+          <div class="qrcode-edit">
+            <div class="qrcode-edit-item">
+              <label>颜色：</label>
+              <n-color-picker v-model:value="color" />
+            </div>
+            <div class="qrcode-edit-item">
+              <label>保存：</label>
+              <n-button
+                size="small"
+                type="primary"
+                @click="handleDownloadQRCode"
+              >
+                点击下载
+              </n-button>
+            </div>
+          </div>
+        </div>
+      </n-tab-pane>
+      <n-tab-pane name="chap2" tab="二维码解码"></n-tab-pane>
+    </n-tabs>
+  </div>
+</template>
+<script setup>
+import { onMounted, ref } from 'vue'
+import {
+  NTabs,
+  NTabPane,
+  NInput,
+  NButton,
+  NQrCode,
+  NColorPicker,
+} from 'naive-ui'
+
+const inputText = ref('')
+const url = ref('')
+const color = ref('#000000')
+console.log(window.location.href)
+
+const handleGenerate = () => {
+  url.value = inputText.value
+}
+
+const init = () => {
+  if (!inputText.value) {
+    inputText.value = window.location.href
+    handleGenerate()
+  }
+}
+
+const handleDownloadQRCode = () => {
+  const canvas = document.querySelector('#qr-code')?.querySelector('canvas')
+  if (canvas) {
+    const url = canvas.toDataURL()
+    const a = document.createElement('a')
+    a.download = 'QRCode.png'
+    a.href = url
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+}
+
+onMounted(() => {
+  init()
+})
+</script>
+<style lang="scss" scoped>
+.qrcode {
+  :deep(.n-tabs-rail) {
+    background-color: #999;
+  }
+  .search-bar {
+    margin-top: 10px;
+  }
+  &-img {
+    display: flex;
+  }
+  &-edit {
+    &-item {
+      margin-top: 10px;
+      width: 150px;
+      display: flex;
+      align-items: center;
+      label {
+        font-size: 12px;
+        white-space: nowrap;
+      }
+    }
+  }
+}
+</style>
+<style>
+.v-binder-follower-content {
+  transform: translateX(460px) translateY(144px) translateX(-150%)
+    translateY(-50%) !important;
+}
+</style>
