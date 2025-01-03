@@ -38,7 +38,7 @@
   </div>
 </template>
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import {
   NTabs,
   NTabPane,
@@ -51,17 +51,23 @@ import {
 const inputText = ref('')
 const url = ref('')
 const color = ref('#000000')
-console.log(window.location.href)
 
 const handleGenerate = () => {
   url.value = inputText.value
 }
 
 const init = () => {
-  if (!inputText.value) {
-    inputText.value = window.location.href
-    handleGenerate()
-  }
+  console.log('qrcode init')
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const activeTab = tabs[0]
+    if (activeTab && activeTab.url) {
+      console.log('当前网页地址:', activeTab.url)
+      if (!inputText.value) {
+        inputText.value = activeTab.url
+        handleGenerate()
+      }
+    }
+  })
 }
 
 const handleDownloadQRCode = () => {
@@ -78,7 +84,12 @@ const handleDownloadQRCode = () => {
 }
 
 onMounted(() => {
+  console.log('popup onMounted')
   init()
+})
+
+onUnmounted(() => {
+  console.log('popup onUnmounted')
 })
 </script>
 <style lang="scss" scoped>

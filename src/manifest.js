@@ -25,15 +25,21 @@ export default defineManifest({
   },
   content_scripts: [
     {
-      matches: ['http://*/*', 'https://*/*'],
+      // matches: ['http://*/*', 'https://*/*'],
+      matches: ['<all_urls>'],
       js: ['src/contentScript/index.js'],
     },
   ],
   web_accessible_resources: [
     {
-      resources: ['img/logo-16.png', 'img/logo-32.png', 'img/logo-48.png', 'img/logo-128.png'],
+      resources: [
+        'img/logo-16.png',
+        'img/logo-32.png',
+        'img/logo-48.png',
+        'img/logo-128.png',
+      ],
       matches: [],
     },
   ],
-  permissions: ['storage'],
+  permissions: ['tabs', 'activeTab', 'storage'],
 })
